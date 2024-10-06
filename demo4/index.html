@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Attendance System</title>
+    <script src="https://unpkg.com/@zxing/library@latest"></script> <!-- ZXing QR scanner -->
+</head>
+<body>
+    <h1>QR Code Scanner for Student Attendance</h1>
+    <video id="video" width="300" height="200" style="border: 1px solid black"></video>
+    <div>
+        <h2>Scanned Roll No:</h2>
+        <p id="roll_no_display"></p>
+    </div>
+
+    <!-- Display Success/Error Messages -->
+    <div id="message" style="display: none;">
+        <p id="message_text"></p>
+    </div>
+
+    <form id="attendance_form" method="POST" action="connect.php">
+        <input type="hidden" id="roll_no_input" name="roll_no" value="">
+        <button type="submit">Mark Attendance</button>
+    </form>
+
+    <script>
+        // QR Code Reader Initialization
+        const codeReader = new ZXing.BrowserQRCodeReader();
+        const videoElement = document.getElementById('video');
+        const rollNoDisplay = document.getElementById('roll_no_display');
+        const rollNoInput = document.getElementById('roll_no_input');
+
+        codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+            if (result) {
+                const rollNo = result.text;
+                rollNoDisplay.textContent = rollNo;
+                rollNoInput.value = rollNo;
+            }
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error(err);
+            }
+        });
+
+        // Display message based on URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+        const roll_no = urlParams.get('roll_no');
+        const messageElement = document.getElementById('message');
+        const messageText = document.getElementById('message_text');
+
+        if (status === 'success') {
+            messageElement.style.display = 'block';
+            messageElement.style.color = 'green';
+            messageText.textContent = `Yes, attendance marked for Roll No: ${roll_no}`;
+        } else if (status === 'error') {
+            messageElement.style.display = 'block';
+            messageElement.style.color = 'red';
+            messageText.textContent = 'No, something went wrong. Please try again.';
+        }
+    </script>
+</body>
+</html>
